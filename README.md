@@ -21,10 +21,14 @@ Node.js
 ## Install
 
 1.パッケージを適当な所に配置する。
+
 2.必要なパッケージをインストールする。
+
 `cd [配置したパッケージ]`
 `node install`
+
 3.環境変数をセットする。
+
 以下はLinuxの場合。Windowsならset 環境変数名=値
 
     export TWIBOT_TWITTER_KEY=ツイッターアプリケーションのKEY  
