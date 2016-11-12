@@ -3,7 +3,7 @@ souzai -惣菜-
 
 ##Overview
 
-惣菜botです。
+( ^ω^)惣菜botでしょー  
 たぶん、Node.jsがあれば動きます。
 
 ## Description
