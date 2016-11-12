@@ -1,0 +1,5 @@
+node_modules
+npm-debug.log
+local_run.sh
+startSouzai.bat
+startSouzai_dev.bat
