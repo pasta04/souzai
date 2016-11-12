@@ -11,9 +11,8 @@ souzai -惣菜-
 省略。
 
 ## Requirement
-
-Node.js  
-つぶやきリストのテキストファイル。形式はdataフォルダ配下のサンプル参照。
+- Node.js  
+- つぶやきリストのテキストファイル2種。形式はdataフォルダ配下のサンプル参照。
 
 ## Usage
 ###環境変数をセット
@@ -32,9 +31,14 @@ export TWIBOT_REPLY_LIST_FILE=ランダム返信ツイートリストのファ�
 ## Install
 
 ###パッケージを適当な所に配置する。
+```
+cp souzai-master.zip [どこか]
+cd [どこか]
+unzip souzai-master.zip
+```
 ###必要なパッケージをインストールする。
 ``` 
-cd [配置したパッケージ]
+cd souzai-master
 node install
 ``` 
 
