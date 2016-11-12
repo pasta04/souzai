@@ -25,7 +25,7 @@ Node.js
 2.必要なパッケージをインストールする。
 
     cd [配置したパッケージ]
-    node install`
+    node install
 
 3.環境変数をセットする。
 
@@ -38,6 +38,7 @@ Node.js
     export TWIBOT_BOT_NAME=BOTのユーザID(数字じゃなくてscreen_nameの方)
     export TWIBOT_RAND_LIST_FILE=ランダムツイートリストのファイル名。(例：./data/rand.tsv)
     export TWIBOT_REPLY_LIST_FILE=ランダム返信ツイートリストのファイル名。
+    
 4.実行する。
 
 `npm start`
