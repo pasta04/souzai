@@ -226,7 +226,7 @@ function updateReplyTweetList() {
 // 定期実行する
 // 秒 分 時 日 月 週
 var cronTweet = new CronJob({
-  cronTime: '0 */20 * * * *',
+  cronTime: '0 */20 6-23 * * *',
   onTick: function() {
     postTweet(getRandomTweet());
   },
