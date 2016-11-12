@@ -37,6 +37,8 @@ cp souzai-master.zip [どこか]
 cd [どこか]
 unzip souzai-master.zip
 ```
+※gitでcloneするのもあり。
+
 ###必要なパッケージをインストールする。
 ``` 
 cd souzai-master
