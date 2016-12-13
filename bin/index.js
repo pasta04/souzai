@@ -21,9 +21,9 @@ var T = new Twit({
 var bot_name = app.get('options').bot_name;
 
 // ランダムツイート一覧
-var randomTweetList; //= ['ランダム犬', 'ランダム猫', 'ランダム鳥', 'ランダムタコ', 'ランダムイカ'];
+var randomTweetList;
 // 返信ツイート一覧
-var replyTweetList; // = ['返信犬', '返信猫', '返信鳥', '返信タコ', '返信イカ'];
+var replyTweetList;
 
 // ランダムツイートファイル名
 var randomTweetListFile = app.get('options').rand_list_file;
@@ -221,8 +221,8 @@ function updateReplyTweetList() {
 // 定期実行する
 // 秒 分 時 日 月 週
 var cronTweet = new CronJob({
-  //cronTime: '0 */20 6-23 * * *',
-  cronTime: '0 * * * * *',
+  cronTime: '0 */20 6-23 * * *',
+  //cronTime: '0 * * * * *',
   onTick: function() {
     postTweet(getRandomTweet());
   },
