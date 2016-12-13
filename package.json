@@ -14,6 +14,7 @@
   "dependencies": {
     "cron": "^1.0.5",
     "express": "^4.10.4",
+    "log4js": "^1.0.1",
     "moment": "^2.8.4",
     "node-tsv-json": "^0.2.1",
     "twit": "^1.1.18"

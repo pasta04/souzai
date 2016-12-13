@@ -7,6 +7,7 @@ var Twit = require('twit');
 var CronJob = require("cron").CronJob;
 var moment = require('moment');
 var tsv2json = require('node-tsv-json');
+var logger = require('./logger');
 
 // key情報
 var T = new Twit({
@@ -35,50 +36,48 @@ var replyTweetListFile = app.get('options').reply_list_file;
 // つぶやく
 //　https://dev.twitter.com/rest/reference/post/statuses/update
 function postTweet(message, in_reply_to_status_id) {
-  console.log('[postTweet]メッセージ:' + message);
+  logger.system.info('[postTweet]:' + message);
   try {
     if (message) {
       T.post('statuses/update', { status: message, in_reply_to_status_id: in_reply_to_status_id }, function(err, data, response) {
-        //console.log('[tweet]data');
-        //console.log(data);
-        //console.log('[tweet]response');
-        //console.log(response);
+        logger.system.trace('[tweet]data');
+        logger.system.trace(data);
+        logger.system.trace('[tweet]response');
+        logger.system.trace(response);
         if (typeof data === 'undefined') {
-          console.log('ツイート失敗したかも');
+          logger.system.error('ツイート失敗したかも');
         }
       });
     }
   } catch (e) {
-    console.log('[postTweet]何かあった');
-    console.log(e);
+    logger.system.error('[postTweet]何かあった');
+    logger.system.error(e);
   }
 }
 
 // ストリーミングAPIを起動してツイートを受信する
 // https://dev.twitter.com/overview/api/tweets
 function startStreamingAPI() {
-
+  logger.system.info('streamingAPI起動');
   //var stream = T.stream('user', { stringify_friend_ids: true });
   var stream = T.stream('user');
-  console.log('streamingAPI起動');
+
 
   stream.on('tweet', function(tweet) {
     try {
-      //console.log('[streamingAPI]');
-      //console.log(tweet);
-      console.log('[streamingAPI]name:' + tweet.user.name); // ツイートしたユーザの表示名
-      console.log('[streamingAPI]screen_name:' + tweet.user.screen_name); // ユーザ名
-      console.log('[streamingAPI]id:' + tweet.id); // ツイートID
-      console.log('[streamingAPI]text:' + tweet.text);　 // ツイート本文
-      //console.log('[streamingAPI]in_reply_to_status_id:' + tweet.in_reply_to_status_id); // リプライ先のツイートID
-      //console.log('[streamingAPI]in_reply_to_status_id_str:' + tweet.in_reply_to_status_id_str);
-      //console.log('[streamingAPI]in_reply_to_user_id:' + tweet.in_reply_to_user_id); // 返信相手のユーザID(数字の方)
-      //console.log('[streamingAPI]in_reply_to_user_id_str:' + in_reply_to_user_id_str);
-      //console.log('[streamingAPI]in_reply_to_screen_name:' + tweet.in_reply_to_screen_name); // 返信相手のユーザ名
+      logger.system.debug('[streamingAPI]name:' + tweet.user.name); // ツイートしたユーザの表示名
+      logger.system.debug('[streamingAPI]screen_name:' + tweet.user.screen_name); // ユーザ名
+      logger.system.debug('[streamingAPI]id:' + tweet.id); // ツイートID
+      logger.system.debug('[streamingAPI]text:' + tweet.text);　 // ツイート本文
+      logger.system.trace('[streamingAPI]in_reply_to_status_id:' + tweet.in_reply_to_status_id); // リプライ先のツイートID
+      logger.system.trace('[streamingAPI]in_reply_to_status_id_str:' + tweet.in_reply_to_status_id_str);
+      logger.system.trace('[streamingAPI]in_reply_to_user_id:' + tweet.in_reply_to_user_id); // 返信相手のユーザID(数字の方)
+      logger.system.trace('[streamingAPI]in_reply_to_user_id_str:' + tweet.in_reply_to_user_id_str);
+      logger.system.trace('[streamingAPI]in_reply_to_screen_name:' + tweet.in_reply_to_screen_name); // 返信相手のユーザ名
 
       // 自分に対するリプライだった時
       if (tweet.in_reply_to_screen_name === bot_name) {
-        console.log('自分に返信が来た');
+        logger.system.debug('自分に返信が来た');
 
         // 返信相手
         var prefix = '';
@@ -92,8 +91,8 @@ function startStreamingAPI() {
       }
 
     } catch (e) {
-      console.log('何かあった');
-      console.log(e);
+      logger.system.error('[startStreamingAPI]何かあった');
+      logger.system.error(e);
     }
   });
 }
@@ -141,8 +140,8 @@ function getReplyTweet() {
   try {
     message = replyTweetList[Math.floor(Math.random() * replyTweetList.length)];
   } catch (e) {
-    console.log('[getReplyTweet]何かあった');
-    console.log(e);
+    logger.system.error('[getReplyTweet]何かあった');
+    logger.system.error(e);
   } finally {
     return message;
   }
@@ -155,8 +154,8 @@ function getRandomTweet() {
   try {
     message = randomTweetList[Math.floor(Math.random() * randomTweetList.length)];
   } catch (e) {
-    console.log('[getReplyTweet]何かあった');
-    console.log(e);
+    logger.system.error('[getReplyTweet]何かあった');
+    logger.system.error(e);
   } finally {
     return message;
   }
@@ -164,7 +163,7 @@ function getRandomTweet() {
 
 // CSVからランダム分に格納する
 function updateRandomTweetList() {
-  console.log('[updateRandomTweetList]');
+  logger.system.debug('[updateRandomTweetList]');
   var tmp = [];
   try {
     tsv2json({
@@ -173,27 +172,25 @@ function updateRandomTweetList() {
       parseRows: true
     }, function(err, result) {
       if (err) {
-        console.error(err);
+        logger.system.error(err);
       } else {
-        //console.log(result);
         result.forEach(function(v) {
-          //console.log(v);
           tmp.push(v[0]);
         });
-        //console.log(randomTweetList);
         randomTweetList = tmp;
       }
+      logger.system.trace(randomTweetList);
     });
 
   } catch (e) {
-    console.log('[updateRandomTweetList]何かあった');
-    console.log(e);
+    logger.system.error('[updateRandomTweetList]何かあった');
+    logger.system.error(e);
   }
 }
 
 // CSVから返信リストに格納する
 function updateReplyTweetList() {
-  console.log('[updateReplyTweetList]');
+  logger.system.debug('[updateReplyTweetList]');
   var tmp = [];
   try {
     tsv2json({
@@ -202,21 +199,19 @@ function updateReplyTweetList() {
       parseRows: true
     }, function(err, result) {
       if (err) {
-        console.error(err);
+        logger.system.error(err);
       } else {
-        //console.log(result);
         result.forEach(function(v) {
-          //console.log(v);
           tmp.push(v[0]);
         });
         replyTweetList = tmp;
-        //console.log(replyTweetList);
       }
+      logger.system.trace(replyTweetList);
     });
 
   } catch (e) {
-    console.log('[updateReplyTweetList]何かあった');
-    console.log(e);
+    logger.system.error('[updateReplyTweetList]何かあった');
+    logger.system.error(e);
   }
 }
 
@@ -226,7 +221,8 @@ function updateReplyTweetList() {
 // 定期実行する
 // 秒 分 時 日 月 週
 var cronTweet = new CronJob({
-  cronTime: '0 */20 6-23 * * *',
+  //cronTime: '0 */20 6-23 * * *',
+  cronTime: '0 * * * * *',
   onTick: function() {
     postTweet(getRandomTweet());
   },

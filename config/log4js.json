@@ -1,0 +1,15 @@
+{
+  "log4js": {
+    "appenders": [{
+      "category": "system",
+      "type": "dateFile",
+      "filename": "./log/system.log",
+      "pattern": "-yyyy-MM-dd",
+      "backups": 5
+    }],
+    "levels": {
+      "system": "INFO"
+    }
+  }
+}
+
