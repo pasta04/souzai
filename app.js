@@ -10,6 +10,7 @@ var options = {
   token_secret: process.env.TWIBOT_TWITTER_TOKEN_SECRET,
   // botの名前
   bot_name: process.env.TWIBOT_BOT_NAME,
+  target_name: process.env.TARGET_USER_NAME,
   // ツイートリスト
   rand_list_file: process.env.TWIBOT_RAND_LIST_FILE,
   reply_list_file: process.env.TWIBOT_REPLY_LIST_FILE

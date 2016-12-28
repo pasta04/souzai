@@ -8,6 +8,7 @@ var CronJob = require("cron").CronJob;
 var moment = require('moment');
 var tsv2json = require('node-tsv-json');
 var logger = require('./logger');
+var fs = require('fs');
 
 // key情報
 var T = new Twit({
@@ -19,11 +20,14 @@ var T = new Twit({
 
 // botのユーザ名
 var bot_name = app.get('options').bot_name;
+var target_name = app.get('options').target_name;
 
 // ランダムツイート一覧
 var randomTweetList;
 // 返信ツイート一覧
 var replyTweetList;
+
+var lastTweetId;
 
 // ランダムツイートファイル名
 var randomTweetListFile = app.get('options').rand_list_file;
@@ -33,26 +37,89 @@ var replyTweetListFile = app.get('options').reply_list_file;
 
 //--------------------------------------------------------------------------
 
+// 特定のユーザのツイートを取得する
+//　https://dev.twitter.com/rest/reference/get/application/rate_limit_status
+function rate_limit() {
+  var tweets = [];
+  T.get('application/rate_limit_status', {}, function(err, data, response) {
+    if (typeof data === 'undefined') {
+      throw '取得失敗';
+    }
+    logger.system.info('[rate_limit]data');
+    logger.system.info(JSON.stringify(data, null, 2));
+  });
+}
+
 // つぶやく
 //　https://dev.twitter.com/rest/reference/post/statuses/update
 function postTweet(message, in_reply_to_status_id) {
   logger.system.info('[postTweet]:' + message);
-  try {
-    if (message) {
-      T.post('statuses/update', { status: message, in_reply_to_status_id: in_reply_to_status_id }, function(err, data, response) {
-        logger.system.trace('[tweet]data');
-        logger.system.trace(data);
-        logger.system.trace('[tweet]response');
-        logger.system.trace(response);
-        if (typeof data === 'undefined') {
-          logger.system.error('ツイート失敗したかも');
+  if (message) {
+    T.post('statuses/update', { status: message, in_reply_to_status_id: in_reply_to_status_id, count: 200 }, function(err, data, response) {
+      logger.system.trace('[tweet]data');
+      logger.system.trace(data);
+      logger.system.trace('[tweet]response');
+      logger.system.trace(response);
+      if (typeof data === 'undefined') {
+        logger.system.error('ツイート失敗したかも');
+      }
+    });
+  }
+}
+
+// 特定のユーザのツイートを取得してファイルを更新
+//　https://dev.twitter.com/rest/reference/get/statuses/user_timeline
+function getSpecUserTweetandUpdateFile(screen_name, since_id) {
+  logger.system.debug('[getSpecUserTweetandUpdateFile]screen_name:' + screen_name + ' since_id:' + since_id);
+  var tweets = [];
+
+  T.get('statuses/user_timeline', { screen_name: screen_name, since_id: since_id, count: 200 }, function(err, data, response) {
+    try {
+      logger.system.trace('[tweet]data');
+      logger.system.trace(data);
+      logger.system.trace('[tweet]response');
+      logger.system.trace(response);
+
+      // 取得したツイートを格納
+      data.forEach(function(val, i) {
+        if (val.hasOwnProperty('id') && val.hasOwnProperty('text')) {
+          tweets[i] = {
+            'id': val.id,
+            'text': val.text
+          };
         }
       });
+
+      // 最終ツイートIDを更新
+      lastTweetId = tweets[0].id;
+
+      // 新しいツイートを下にする
+      tweets.reverse();
+
+      // 各ツイートについて、いろいろ
+      for (var i = 0; i < tweets.length - 1; i++) {
+
+        // URL入りはとりあえず除外する
+        if (/http/.test(tweets[i].text)) {
+          continue;
+        }
+
+        /// リプライ系
+        if (/@[a-zA-Z0-9]/.test(tweets[i].text)) {
+          // ユーザ名は削除する
+          var str = tweets[i].text.replace(/@[a-zA-Z0-9_]+\s?/g, '');
+          fs.appendFile(replyTweetListFile, str + '\t' + tweets[i].id + '\n', 'utf-8');
+        } else {
+          fs.appendFile(randomTweetListFile, tweets[i].text + '\t' + tweets[i].id + '\n', 'utf-8');
+        }
+      }
+      logger.system.info('ツイートファイルを更新しました。');
+
+    } catch (e) {
+      logger.system.error('[getSpecUserTweet]何かあった');
+      logger.system.error(e);
     }
-  } catch (e) {
-    logger.system.error('[postTweet]何かあった');
-    logger.system.error(e);
-  }
+  });
 }
 
 // ストリーミングAPIを起動してツイートを受信する
@@ -61,7 +128,6 @@ function startStreamingAPI() {
   logger.system.info('streamingAPI起動');
   //var stream = T.stream('user', { stringify_friend_ids: true });
   var stream = T.stream('user');
-
 
   stream.on('tweet', function(tweet) {
     try {
@@ -176,11 +242,20 @@ function updateRandomTweetList() {
       if (err) {
         logger.system.error(err);
       } else {
+        var id;
         result.forEach(function(v) {
+          if (v[1]) {
+            id = v[1];
+          }
           tmp.push(v[0]);
         });
         randomTweetList = tmp;
+        // 最終ツイートIDを更新
+        if (id) {
+          lastTweetId = id;
+        }
       }
+      logger.system.info('最終ツイートID:' + lastTweetId);
       logger.system.trace(randomTweetList);
     });
 
@@ -234,6 +309,10 @@ var cronTweet = new CronJob({
 var cronUpdate = new CronJob({
   cronTime: '0 0 0 * * *',
   onTick: function() {
+    // ツイート取得とファイル更新
+    // 非同期だから反映は翌日
+    getSpecUserTweetandUpdateFile(target_name, lastTweetId);
+    // ファイルから読み込み
     updateRandomTweetList();
     updateReplyTweetList();
   },
@@ -241,12 +320,18 @@ var cronUpdate = new CronJob({
 });
 //--------------------------------------------------------------------------
 
+// APIの残量
+//rate_limit();
+
 // cronを実行
 cronUpdate.start();
 cronTweet.start();
 
 // ストリーミングAPI起動
 startStreamingAPI();
+
+// ツイート取得とファイル更新
+//getSpecUserTweetandUpdateFile(target_name, lastTweetId);
 
 // テキストから読み込む
 updateRandomTweetList();
