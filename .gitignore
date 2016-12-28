@@ -5,3 +5,4 @@ local_run_dev.sh
 startSouzai.bat
 startSouzai_dev.bat
 heroku.config
+log/system.log

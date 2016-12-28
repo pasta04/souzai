@@ -76,7 +76,9 @@ function startStreamingAPI() {
       logger.system.trace('[streamingAPI]in_reply_to_screen_name:' + tweet.in_reply_to_screen_name); // 返信相手のユーザ名
 
       // 自分に対するリプライだった時
-      if (tweet.in_reply_to_screen_name === bot_name) {
+      //if (tweet.in_reply_to_screen_name === bot_name) {
+      // 本文中にIDが含まれていたら返信することにした。
+      if (tweet.text.indexOf('@' + bot_name) != -1) {
         logger.system.debug('自分に返信が来た');
 
         // 返信相手
