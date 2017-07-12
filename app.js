@@ -13,7 +13,9 @@ var options = {
   target_name: process.env.TARGET_USER_NAME,
   // ツイートリスト
   rand_list_file: process.env.TWIBOT_RAND_LIST_FILE,
-  reply_list_file: process.env.TWIBOT_REPLY_LIST_FILE
+  reply_list_file: process.env.TWIBOT_REPLY_LIST_FILE,
+  // 学習フラグ
+  learn_flag: process.env.LEARN_FLAG
 };
 app.set('options', options);
 
@@ -23,11 +25,11 @@ app.set('port', (process.env.PORT || 5000));
 app.use(express.static(__dirname + '/public'));
 
 // 直接アクセスされた場合
-app.get('/', function(request, response) {
+app.get('/', function (request, response) {
   //response.send('惣菜屋');
 });
 
-app.listen(app.get('port'), function() {
+app.listen(app.get('port'), function () {
   console.log("Node app is running at localhost:" + app.get('port'));
 });
 

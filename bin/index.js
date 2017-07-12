@@ -35,6 +35,10 @@ var randomTweetListFile = app.get('options').rand_list_file;
 // 返信ツイートファイル名
 var replyTweetListFile = app.get('options').reply_list_file;
 
+// 学習フラグ
+var learnflag = app.get('options').stop_learn_flag;
+
+
 //--------------------------------------------------------------------------
 
 // 特定のユーザのツイートを取得する
@@ -325,9 +329,11 @@ var cronTweet = new CronJob({
 var cronUpdate = new CronJob({
   cronTime: '0 0 0 * * *',
   onTick: function () {
-    // ツイート取得とファイル更新
-    // 非同期だから反映は翌日
-    getSpecUserTweetandUpdateFile(target_name, lastTweetId);
+    // 学習モードならツイート取得とファイル更新
+    if (learnflag === '1') {
+      // 非同期だから反映は翌日
+      getSpecUserTweetandUpdateFile(target_name, lastTweetId);
+    }
     // ファイルから読み込み
     updateRandomTweetList();
     updateReplyTweetList();
